@@ -30,6 +30,14 @@
 - **서로의 작업을 덮어쓰지 않습니다.** 같은 파일을 동시에 고치게 되면 먼저 사용자에게 알립니다.
 - 사이트에서 "맡기기"를 누르면 서버가 렘(`codex exec`)·람(`claude -p`)을 화면 없이 직접 실행합니다 (`komow-local/runner.py`).
 
+## 2-1. 작업 로그 — 상태를 묻지 말고 로그를 본다
+
+모든 작업(렘·람 실행, 실험, PPT 게시, 그림, 태그, 수집, 파일 보관)이 `logs/work.jsonl`에 **start · step · error · done**을 남깁니다. 맡긴 일의 상태를 묻지 않습니다.
+
+- 확인: `curl "http://127.0.0.1:8788/api/local/log?after=<마지막 n>&job=<EXP-번호>&wait=60"` → 새 사건이 생기면 바로, 없으면 60초 뒤 답. `done`이나 `error`가 나올 때까지 이것만 반복 (1~2초 간격으로 묻기 금지).
+- 직접 한 작업도 남김: `python komow-local/worklog.py <job> <rem|ram> <start|step|error|done> "<짧은 설명>" [ref]`
+- 자세한 형식·작업별 사건: 스킬 `madebymaid-worklog`
+
 ## 3. 일하는 규칙
 
 1. **한국어**로 답합니다. 사용자에게 쉬운 말로, 결과부터.
@@ -55,6 +63,7 @@
 | `madebymaid-image-gen` | "이미지 생성 대기" 그림 채우기 (기본 렘) |
 | `madebymaid-tagging` | AI 기술·분야 태그 (기준표 `tags.json`) |
 | `madebymaid-viewer` | 결과물 펼쳐 보기·산출물 위치 이동 |
+| `madebymaid-worklog` | 작업 로그 읽기·기다리기·남기기 (상태 묻기 대신) |
 
 스킬 라이브러리(남이 만든 297개)는 `a4ai-import/sources` — 읽기만 합니다.
 
@@ -71,10 +80,12 @@
     tagging.py · tags.json        태그
     runner.py                     렘·람 자동 실행
     preview.py                    Office → PDF 미리보기
+    worklog.py                    작업 로그
     ppt/deck.py                   PPT·웹 슬라이드 만들기·게시
     app/                          화면 (index.html, app.js, app.css)
     data/                         수집 데이터·실험 기록·스킬·비밀 정보
     site/                         작업 공방 도구 실행 파일 (건드리지 않음)
+  logs/work.jsonl                작업 로그 (모든 작업의 시작·진행·오류·완료)
   outputs/렘 · outputs/람         결과 파일 → 산출물 정리로 자동 보관
   실험실/EXP-번호                  실험 작업 폴더 (실행 기록 run-렘.log / run-람.log)
   madebymaid-reports/             공개 보고서 저장소 (GitHub Pages)

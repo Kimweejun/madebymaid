@@ -17,11 +17,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import worklog  # noqa: E402  (komow-local/worklog.py)
+
 ROOT = Path(__file__).resolve().parents[2]          # 통합서버
 REPO = ROOT / 'madebymaid-reports'
 PAGES = 'https://kimweejun.github.io/madebymaid-reports'
 OUTBOX = ROOT / 'outputs'
 MAIDS = {'렘', '람'}
+MAID_BY = {'렘': 'rem', '람': 'ram'}
 
 # A4AI 발표 디자인 시스템 tokens (tokens.json)
 INK, PAPER, FIELD, LINE, MUTED, BODY2, NOTE, ON_DARK = '#17201A', '#FFFFFF', '#EEF2EB', '#D6DED2', '#5C685F', '#2C362F', '#7D897F', '#D5DDD2'
@@ -72,6 +76,7 @@ def load(path):
     if not c.get('headline') or not c.get('reasons'):
         errors.append('conclusion.headline과 reasons가 필요해요')
     if errors:
+        worklog.log(d.get('no') or 'deck', MAID_BY.get(d.get('maid'), 'server'), 'error', 'deck.json: ' + '; '.join(errors)[:250])
         sys.exit('deck.json 확인 필요:\n- ' + '\n- '.join(errors))
     d['slug'] = re.sub(r'[^0-9A-Za-z가-힣]+', '-', d['title']).strip('-')[:40] or 'report'
     d['t'] = THEMES[d['theme']]
@@ -416,6 +421,8 @@ i=Math.max(0,Math.min(rows.length-1,i+(k==='ArrowLeft'||k==='PageUp'?-1:1)));row
 
 def build(path):
     d = load(path)
+    who = MAID_BY.get(d['maid'], 'server')
+    worklog.log(d['no'], who, 'step', 'deck: build')
     base = Path(path).parent / f'{d["no"]}_{d["slug"]}'
     pptx = base.with_suffix('.pptx')
     build_pptx(d, pptx)
@@ -432,6 +439,7 @@ def build(path):
 def git(*args):
     r = subprocess.run(['git', '-C', str(REPO), *args], capture_output=True, text=True, encoding='utf-8')
     if r.returncode:
+        worklog.log('deck', 'server', 'error', f'git {args[0]} failed: {r.stderr.strip()[:200]}')
         sys.exit(f'git {" ".join(args)} 실패: {r.stderr.strip()}')
     return r.stdout
 
@@ -466,6 +474,7 @@ def publish(path):
         git('commit', '-q', '-m', f'{d["no"]} {d["title"]}')
     git('push', '-q', 'origin', 'HEAD')
     url = f'{PAGES}/{d["no"]}/'
+    worklog.log(d['no'], MAID_BY.get(d['maid'], 'server'), 'done', 'deck published', url)
     out = OUTBOX / d['maid']
     out.mkdir(parents=True, exist_ok=True)
     for ext in ('.pptx', '.html'):

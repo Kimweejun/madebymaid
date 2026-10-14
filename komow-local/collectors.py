@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 
 import workspace
+import worklog
 
 INTERVAL = 1800
 UA = 'Mozilla/5.0 (madebymaid local collector)'
@@ -319,11 +320,14 @@ def run(name='*'):
     with _lock:  # one collection at a time (startup, 30-minute loop, manual refresh)
         for job in ([j for j in JOBS if j != 'support'] if name == '*' else [name]):  # support has its own 3-hour loop
             STATUS[job] = {**STATUS.get(job, {}), 'running': True}
+            worklog.log('collect:' + job, 'server', 'start', 'collect')
             try:
                 count, added = JOBS[job]()
                 STATUS[job] = {'ok': True, 'at': time.time(), 'count': count, 'added': added, 'error': ''}
+                worklog.log('collect:' + job, 'server', 'done', f'{count} items, {added} new')
             except Exception as error:  # network/site changes must not kill the loop
                 STATUS[job] = {**STATUS.get(job, {}), 'ok': False, 'running': False, 'at': time.time(), 'error': str(error)[:200]}
+                worklog.log('collect:' + job, 'server', 'error', str(error)[:200])
 
 
 def start():
@@ -350,7 +354,7 @@ def start():
                 import tagging
                 tagging.daily()  # unclassified items -> 렘, once a day
             except Exception as e:  # ponytail: a bad batch must never stop the outbox loop
-                print('tagging.daily', e)
+                worklog.log('tags', 'server', 'error', f'daily batch: {e}')
             time.sleep(30)
     threading.Thread(target=outbox, daemon=True, name='outbox').start()
 

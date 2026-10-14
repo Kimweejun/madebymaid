@@ -158,6 +158,8 @@ if __name__=='__main__':
     parser.add_argument('--port',type=int,default=int(os.environ.get('PORT',8788)))
     parser.add_argument('--host',default=os.environ.get('KOMOW_HOST','127.0.0.1'))
     args=parser.parse_args()
+    import worklog
+    worklog.log('server', 'server', 'start', f'listening {args.host}:{args.port}')
     ALLOWED_HOSTS.update(h.strip() for h in os.environ.get('KOMOW_ALLOWED_HOSTS','').split(',') if h.strip())
     PASSWORD=os.environ.get('KOMOW_PASSWORD','')
     if args.host not in ('127.0.0.1','localhost','::1') and len(PASSWORD)<12:

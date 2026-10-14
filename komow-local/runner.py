@@ -3,8 +3,12 @@
 Limits (user decision 2026-10-14): write only to the experiment's 실험실 folder, outputs/ and the report repo;
 no installs (the prompt says to stop and write "설치 필요"); internet stays on because the agent must read the source
 and push the report — the CLIs cannot limit network to git alone.
+
+Both CLIs stream JSON events; every meaningful step goes to the work log (worklog.py) as it happens, and the run log
+(실험실/<job>/run-렘|람.log) gets the same steps in plain text plus the final answer.
 """
 import glob
+import json
 import os
 import subprocess
 import threading
@@ -12,11 +16,12 @@ import time
 from pathlib import Path
 
 import workspace
+import worklog
 
 MAID_NAME = {'rem': '렘', 'ram': '람'}
 REPO = workspace.ROOT.parent / 'madebymaid-reports'
 TIMEOUT = 45 * 60
-PROCS = {}  # (experiment id, maid) -> Popen, only for runs this server started
+PROCS = {}  # (job key, maid) -> Popen, only for runs this server started
 
 
 def find_cli(maid):
@@ -30,13 +35,106 @@ def find_cli(maid):
 
 def command(maid, cli, cwd):
     if maid == 'rem':
-        return [cli, 'exec', '--skip-git-repo-check', '-C', str(cwd), '--sandbox', 'workspace-write',
+        return [cli, 'exec', '--json', '--skip-git-repo-check', '-C', str(cwd), '--sandbox', 'workspace-write',
                 '--add-dir', str(workspace.OUTBOX), '--add-dir', str(REPO),
                 '-c', 'sandbox_workspace_write.network_access=true', '--enable', 'image_generation', '-']
     tools = ['Read', 'Write', 'Edit', 'Glob', 'Grep', 'WebFetch', 'WebSearch',
              'Bash(python:*)', 'Bash(git:*)', 'Bash(curl:*)', 'Bash(mkdir:*)', 'Bash(ls:*)', 'Bash(cp:*)']
-    return [cli, '-p', '--permission-mode', 'acceptEdits', '--add-dir', str(workspace.OUTBOX), str(REPO),
+    return [cli, '-p', '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
+            '--add-dir', str(workspace.OUTBOX), str(REPO),
             '--allowedTools', *tools, '--disallowedTools', 'Bash(pip:*)', 'Bash(npm:*)', 'Bash(winget:*)', 'Bash(choco:*)']
+
+
+def short(v, n=90):
+    return ' '.join(str(v).split())[:n]
+
+
+def steps(maid, e):
+    """One CLI event -> (kind, text): kind 'step' for progress, 'final' for the answer, 'error'. None to skip."""
+    t = e.get('type')
+    if maid == 'rem':  # codex exec --json
+        item = e.get('item') or {}
+        it = item.get('type')
+        if t == 'item.started' and it == 'command_execution':
+            return 'step', 'run: ' + short(item.get('command', ''))
+        if t == 'item.completed' and it == 'web_search':
+            return 'step', 'web: ' + short(item.get('query', ''))
+        if t == 'item.completed' and it == 'file_change':
+            return 'step', 'write: ' + ', '.join(Path(c.get('path', '')).name for c in item.get('changes', []))[:120]
+        if t == 'item.completed' and it == 'agent_message':
+            return 'final', item.get('text', '')
+        if t in ('error', 'turn.failed'):
+            return 'error', short((e.get('error') or {}).get('message') or e.get('message') or e, 200)
+        return None
+    # claude -p --output-format stream-json
+    if t == 'assistant':
+        for c in (e.get('message') or {}).get('content', []):
+            if c.get('type') == 'tool_use':
+                i, name = c.get('input') or {}, c.get('name', '')
+                what = {'WebFetch': 'web: ' + short(i.get('url', '')), 'WebSearch': 'web: ' + short(i.get('query', '')),
+                        'Read': 'read: ' + Path(i.get('file_path', '')).name, 'Write': 'write: ' + Path(i.get('file_path', '')).name,
+                        'Edit': 'write: ' + Path(i.get('file_path', '')).name, 'Bash': 'run: ' + short(i.get('command', ''))}
+                return 'step', what.get(name, name.lower())
+        return None
+    if t == 'result':
+        return ('error' if e.get('is_error') else 'final'), e.get('result', '')
+    return None
+
+
+def spawn(job, maid, prompt, cwd, task, on_end):
+    """Start the CLI, stream its events into the work log and run log, call on_end(code, note) when it stops."""
+    cli = find_cli(maid)
+    if not cli:
+        worklog.log(job, maid, 'error', f'{task}: cli not found')
+        return f'{MAID_NAME[maid]} 명령줄 도구를 찾지 못했어요.'
+    cwd = Path(cwd); cwd.mkdir(parents=True, exist_ok=True)
+    out = (cwd / f'run-{MAID_NAME[maid]}.log').open('a', encoding='utf-8')
+    out.write(f'\n===== {time.strftime("%Y-%m-%d %H:%M:%S")} start ({task}) =====\n'); out.flush()
+    try:
+        proc = subprocess.Popen(command(maid, cli, cwd), cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    except OSError as e:
+        out.close()
+        worklog.log(job, maid, 'error', f'{task}: cannot start: {e}')
+        return f'{MAID_NAME[maid]}를 시작하지 못했어요: {e}'
+    proc.stdin.write(prompt.encode('utf-8')); proc.stdin.close()
+    PROCS[(job, maid)] = proc
+    worklog.log(job, maid, 'start', task, str(cwd))
+
+    def pump():
+        final, errors, raw_tail = '', [], []
+        timer = threading.Timer(TIMEOUT, proc.kill); timer.start()
+        for raw in proc.stdout:
+            line = raw.decode('utf-8', 'replace').strip()
+            if not line:
+                continue
+            try:
+                ev = steps(maid, json.loads(line))
+            except ValueError:  # plain text (e.g. "Not logged in")
+                raw_tail = (raw_tail + [line])[-5:]; out.write(line + '\n'); out.flush()
+                continue
+            if not ev:
+                continue
+            kind, text = ev
+            if kind == 'final':
+                final = text
+            else:
+                (errors.append(text) if kind == 'error' else None)
+                worklog.log(job, maid, kind, text)
+                out.write(f'[{time.strftime("%H:%M:%S")}] {kind}: {text}\n'); out.flush()
+        code = proc.wait(); timer.cancel()
+        text = '\n'.join(raw_tail)
+        note = '로그인 필요' if 'Not logged in' in text or 'Please run /login' in text else ''
+        if final:
+            out.write(final.strip() + '\n')
+        out.write(f'===== end (code {code}) =====\n'); out.close()
+        if code == 0 and not errors:
+            worklog.log(job, maid, 'done', short(final, 200) or task)
+        else:
+            worklog.log(job, maid, 'error', note or (errors[-1] if errors else short(text, 200)) or f'exit {code}')
+        on_end(code, note)
+    threading.Thread(target=pump, daemon=True).start()
+    return ''
 
 
 def set_run(exp_id, maid, **state):
@@ -55,74 +153,34 @@ def set_run(exp_id, maid, **state):
 
 
 def start(x, maid, prompt, task='main'):
-    """Start one headless run in the background. Returns an error string, or '' when started."""
-    if (x['id'], maid) in PROCS and PROCS[(x['id'], maid)].poll() is None:
+    """Start one headless run for an experiment. Returns an error string, or '' when started."""
+    job = x['no']
+    if (job, maid) in PROCS and PROCS[(job, maid)].poll() is None:
         return f'{MAID_NAME[maid]}가 이미 이 실험을 하고 있어요.'
-    cli = find_cli(maid)
-    if not cli:
-        return f'{MAID_NAME[maid]} 명령줄 도구를 찾지 못했어요.'
-    cwd = workspace.LAB / x['no']
-    cwd.mkdir(parents=True, exist_ok=True)
+    cwd = workspace.LAB / job
     log = cwd / f'run-{MAID_NAME[maid]}.log'
-    out = log.open('a', encoding='utf-8')
-    out.write(f'\n===== {time.strftime("%Y-%m-%d %H:%M:%S")} 시작 ({task}) =====\n'); out.flush()
-    try:
-        proc = subprocess.Popen(command(maid, cli, cwd), cwd=cwd, stdin=subprocess.PIPE, stdout=out, stderr=subprocess.STDOUT,
-                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    except OSError as e:
-        out.close()
-        return f'{MAID_NAME[maid]}를 시작하지 못했어요: {e}'
-    proc.stdin.write(prompt.encode('utf-8')); proc.stdin.close()
-    PROCS[(x['id'], maid)] = proc
-    set_run(x['id'], maid, state='running', task=task, started=int(time.time()), log=str(log))
 
-    def wait():
-        try:
-            code = proc.wait(timeout=TIMEOUT)
-        except subprocess.TimeoutExpired:
-            proc.kill(); code = 'timeout'
-        out.write(f'\n===== 끝 (코드 {code}) =====\n'); out.close()
-        text = log.read_text(encoding='utf-8', errors='replace')[-4000:]
-        note = '로그인 필요' if 'Not logged in' in text or 'Please run /login' in text else ''
+    def end(code, note):
         set_run(x['id'], maid, state='done' if code == 0 else 'failed', ended=int(time.time()), code=code, note=note)
-    threading.Thread(target=wait, daemon=True).start()
-    return ''
+    err = spawn(job, maid, prompt, cwd, task, end)
+    if not err:
+        set_run(x['id'], maid, state='running', task=task, started=int(time.time()), log=str(log))
+    return err
 
 
 def start_plain(maid, prompt, cwd, on_done=None):
-    """A run that is not an experiment (e.g. the daily tag batch): same limits, log in cwd, on_done(code) afterwards."""
-    if ('plain', str(cwd)) in PROCS and PROCS[('plain', str(cwd))].poll() is None:
+    """A run that is not an experiment (e.g. the daily tag batch): same limits and logging."""
+    job = Path(cwd).name
+    if (job, maid) in PROCS and PROCS[(job, maid)].poll() is None:
         return '이미 실행 중이에요.'
-    cli = find_cli(maid)
-    if not cli:
-        return f'{MAID_NAME[maid]} 명령줄 도구를 찾지 못했어요.'
-    out = (Path(cwd) / f'run-{MAID_NAME[maid]}.log').open('a', encoding='utf-8')
-    try:
-        proc = subprocess.Popen(command(maid, cli, cwd), cwd=cwd, stdin=subprocess.PIPE, stdout=out, stderr=subprocess.STDOUT,
-                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    except OSError as e:
-        out.close()
-        return str(e)
-    proc.stdin.write(prompt.encode('utf-8')); proc.stdin.close()
-    PROCS[('plain', str(cwd))] = proc
-
-    def wait():
-        try:
-            code = proc.wait(timeout=TIMEOUT)
-        except subprocess.TimeoutExpired:
-            proc.kill(); code = 'timeout'
-        out.close()
-        if on_done:
-            on_done(code)
-    threading.Thread(target=wait, daemon=True).start()
-    return ''
+    return spawn(job, maid, prompt, cwd, 'batch', lambda code, note: on_done and on_done(code))
 
 
 def refresh(items):
     """A run marked running that this server did not start (server restarted) is shown as ended."""
     for x in items:
         for maid, r in (x.get('runs') or {}).items():
-            if r.get('state') == 'running' and (x['id'], maid) not in PROCS:
+            if r.get('state') == 'running' and (x.get('no'), maid) not in PROCS:
                 r['state'] = 'ended'
     return items
 

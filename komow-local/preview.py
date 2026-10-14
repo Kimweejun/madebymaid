@@ -47,7 +47,10 @@ def office_pdf(file_id):
         except (OSError, subprocess.TimeoutExpired):
             pass
         src.unlink(missing_ok=True)
+        import worklog
         if not pdf.is_file():
             _failed.add(file_id)
+            worklog.log('preview', 'server', 'error', 'pdf failed: ' + meta['name'])
             return None
+        worklog.log('preview', 'server', 'done', 'pdf: ' + meta['name'])
         return pdf.read_bytes()

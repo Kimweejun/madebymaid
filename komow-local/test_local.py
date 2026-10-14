@@ -22,6 +22,7 @@ class LocalTests(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp=tempfile.TemporaryDirectory();workspace.DATA=Path(cls.tmp.name)
         import runner;runner.start=lambda *a,**k:'';runner.start_plain=lambda *a,**k:''  # tests must never launch real 렘·람 runs
+        import os,worklog;os.environ['MADEBYMAID_WORKLOG']=str(Path(cls.tmp.name)/'work.jsonl');worklog.FILE=Path(os.environ['MADEBYMAID_WORKLOG']);worklog.LOGS=worklog.FILE.parent  # never touch the real work log
         workspace.LAB=Path(cls.tmp.name)/'lab'
         cls.server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
         cls.base='http://127.0.0.1:'+str(cls.server.server_port)
@@ -279,6 +280,19 @@ class LocalTests(unittest.TestCase):
             self.assertEqual(e.exception.code,415)  # only Office files convert
         finally:
             for x in (f,m):self.call('/api/local/files?id='+x['id'],'DELETE')
+    def test_worklog(self):
+        import worklog,runner,threading,time
+        e=worklog.log('EXP-1015-09','ram','start','main');self.assertEqual(e['ev'],'start')
+        threading.Timer(0.5,lambda:worklog.log('EXP-1015-09','ram','done','ok')).start()
+        t=time.time();d,_=workspace.get('/api/local/log',{'after':[str(e['n'])],'wait':['5']})
+        self.assertLess(time.time()-t,4);self.assertEqual([x['ev'] for x in d['events']],['done']);self.assertEqual(d['last'],e['n']+1)
+        self.assertEqual(workspace.get('/api/local/log',{'after':['0'],'job':['EXP-1015-09']})[0]['events'][0]['msg'],'main')
+        # CLI event parsing: Codex --json and Claude stream-json
+        self.assertEqual(runner.steps('rem',{'type':'item.started','item':{'type':'command_execution','command':'git push'}}),('step','run: git push'))
+        self.assertEqual(runner.steps('rem',{'type':'item.completed','item':{'type':'agent_message','text':'끝'}}),('final','끝'))
+        self.assertEqual(runner.steps('ram',{'type':'assistant','message':{'content':[{'type':'tool_use','name':'WebFetch','input':{'url':'https://a.b'}}]}}),('step','web: https://a.b'))
+        self.assertEqual(runner.steps('ram',{'type':'result','is_error':True,'result':'boom'}),('error','boom'))
+        self.assertIsNone(runner.steps('ram',{'type':'system'}))
     def test_deck_rules(self):
         import json,subprocess,sys
         bad=Path(self.tmp.name)/'deck.json';bad.write_text(json.dumps({'no':'EXP-1014-01','maid':'람','title':'t','slides':[],'conclusion':{}}),encoding='utf-8')

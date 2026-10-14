@@ -314,6 +314,8 @@ def link_experiment(no, f):
             _, raw = file_bytes(f['id'])
             x['image_task'] = '' if '생성할 그림 없음' in raw.decode('utf-8', 'replace') else image_prompt(x, f['folder'])
             auto = bool(x['image_task']) and not x.get('image_auto')
+            import worklog
+            worklog.log(no, 'server', 'info', 'images needed' if x['image_task'] else 'no images needed', f['name'])
             if auto:  # hand the pictures to 렘 once; if 렘 cannot fill them the card keeps a manual button (no loop)
                 x['image_auto'] = 1
         else:
@@ -321,6 +323,8 @@ def link_experiment(no, f):
             x['results'].append({'id': f['id'], 'name': f['name'], 'maid': maid, 'at': f['created'], **({'web': f['web']} if f.get('web') else {})})
             if x['status'] in ('sent', 'running'):
                 x['status'] = 'arrived'
+            import worklog
+            worklog.log(no, maid or 'server', 'done', 'result: ' + f['name'], f.get('web') or f'outputs/{f.get("folder", "")}/{f["name"]}')
         save_data('experiments.json', items)
     if auto:
         import runner
@@ -342,6 +346,8 @@ def ingest_outbox():
         folder = rel.split('/')[0] if '/' in rel else '자동 보관'
         if not store_file(f.read_bytes(), f.name, folder, f'자동 보관 · outputs/{rel}').get('duplicate'):
             added += 1
+            import worklog
+            worklog.log('outputs', 'server', 'info', 'filed ' + rel)
         seen[rel] = key
     save_data('outbox_seen.json', seen)
     return added
@@ -494,6 +500,14 @@ def get(path, query):
                 'reports': list({x['no']: {'no': x['no'], 'title': x['title'], 'web': r['web']} for x in reversed(exps)
                                  for r in x.get('results', []) if r.get('web')}.values())[::-1][:4],
                 'files': [f for f in file_list() if not f['name'].endswith(('_이미지프롬프트.md', '_웹주소.txt'))][:4]}, 200
+    if path == '/api/local/log':  # 작업 로그: waits up to `wait` s for something newer than `after` (no fast polling)
+        import worklog
+        try:
+            after, wait = int(q('after') or 0), float(q('wait') or 0)
+        except ValueError:
+            raise ValueError
+        events = worklog.wait(after, q('job'), wait) if wait else worklog.read(after, q('job'))
+        return {'events': events, 'last': events[-1]['n'] if events else after}, 200
     if path == '/api/local/experiments/log':
         import runner
         return {'log': runner.log_tail(q('id'), q('maid'))}, 200
@@ -522,7 +536,10 @@ def post(path, body):
         key = str(body['key'])[:600]
         if not re.match(r'(https?://|tool:|exp:|skill:|myskill:)', key):
             raise ValueError
-        return tagging.set_override(key, list(body.get('tech') or []), list(body.get('field') or [])), 200
+        t = tagging.set_override(key, list(body.get('tech') or []), list(body.get('field') or []))
+        import worklog
+        worklog.log('tags', 'user', 'info', f"edit {key[:80]}: {'/'.join(t['tech'] + t['field']) or 'auto'}")
+        return t, 200
     if path == '/api/local/tags/classify':  # 미분류 -> 렘 now (the daily run does the same)
         import tagging
         n, err = tagging.classify_now()
@@ -605,6 +622,9 @@ def post(path, body):
                 item['no'] = next_exp_no(items)
                 item['prompts'] = {m: exp_prompt(item, m) for m in maids}
             save_data('experiments.json', [item] + items)
+        if maids:
+            import worklog
+            worklog.log(item['no'], 'user', 'info', f"created {kind} for {'+'.join(maids)}: {item['title'][:80]}")
         if maids and body.get('run'):  # 맡기기: the server starts 렘·람 itself (runner.py)
             import runner
             item['run_errors'] = [e for e in (runner.start(item, m, item['prompts'][m]) for m in maids) if e]
@@ -626,6 +646,8 @@ def post(path, body):
                 return {'error': '실험을 찾을 수 없어요.'}, 404
             x['rating'] = max(0, min(5, int(body.get('rating', 0))))
             x['result'] = str(body.get('result', ''))[:50_000]
+            import worklog
+            worklog.log(x.get('no') or x['id'], 'user', 'info', f"rated {x['rating']}")
             if x.get('status') in ('sent', 'arrived') and x['rating']:
                 x['status'] = 'rated'
             save_data('experiments.json', items)

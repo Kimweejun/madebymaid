@@ -165,6 +165,8 @@ def classify_now():
         asked = workspace.load_data('tags_ai_asked.json', {})
         asked.update({i['key']: day for i in items})
         workspace.save_data('tags_ai_asked.json', asked)
+    import worklog
+    worklog.log(folder.name, 'server', 'info', f'{len(items)} unclassified -> rem')
     err = runner.start_plain('rem', prompt, folder, lambda code: merge(folder))
     return (0, err) if err else (len(items), '')
 
@@ -183,6 +185,8 @@ def merge(folder):
                 if tech or field:
                     ai[k] = {'tech': tech, 'field': field}
         workspace.save_data('tags_ai.json', ai)
+    import worklog
+    worklog.log(folder.name, 'rem', 'done', f'{len(result)} items tagged')
     return len(result)
 
 
