@@ -80,6 +80,63 @@ def library():
     return _library
 
 
+def skill_slug(name):
+    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')[:60]
+
+
+def save_skill(content, slug, overwrite=True):
+    # Share the editor's naming/storage rules; imports exclusively create a new folder.
+    if not SLUG.fullmatch(slug) or re.fullmatch(r'con|prn|aux|nul|com[1-9]|lpt[1-9]', slug):
+        return {'error': '스킬 이름(name)을 영문·숫자로 정해 주세요. 예약된 이름은 사용할 수 없어요.'}, 400
+    with LOCK:
+        base = (DATA / 'skills').resolve()
+        folder = base / slug
+        target = folder / 'SKILL.md'
+        if folder.resolve() != folder or target.resolve() != target:
+            return {'error': '스킬 저장 경로가 올바르지 않습니다.'}, 400
+        try:
+            folder.mkdir(parents=True, exist_ok=overwrite)
+            with target.open('w' if overwrite else 'x', encoding='utf-8', newline='') as out:
+                out.write(content)
+        except FileExistsError:
+            return {'error': f'같은 이름의 스킬({slug})이 이미 있어요. 원본의 name을 바꾼 뒤 다시 등록해 주세요.'}, 409
+    return {'slug': slug}, 201
+
+
+def import_skill(file_id):
+    if not isinstance(file_id, str) or not re.fullmatch(r'[0-9a-f]{64}', file_id):
+        return {'error': '등록할 산출물의 file_id를 확인해 주세요.'}, 400
+    meta, raw = file_bytes(file_id)
+    if not meta:
+        return {'error': '등록할 산출물 파일을 찾을 수 없어요.'}, 404
+    if not meta['name'].lower().endswith('skill.md'):
+        return {'error': '이름이 SKILL.md로 끝나는 파일만 등록할 수 있어요.'}, 400
+    try:
+        content = raw.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        return {'error': 'SKILL.md를 UTF-8 텍스트로 저장해 주세요.'}, 400
+    if not content.strip() or len(content) > 200_000:
+        return {'error': '스킬 내용은 비어 있지 않은 200,000자 이하 텍스트여야 해요.'}, 400
+    header = re.match(r'\A---[ \t]*\r?\n(.*?)^---[ \t]*(?:\r?\n|\Z)', content, re.M | re.S)
+    if not header:
+        return {'error': '파일 맨 위에 ---로 감싼 name·description 머리말이 필요해요.'}, 400
+    fields = {}
+    for key in ('name', 'description'):
+        values = re.findall(r'^' + key + r':[ \t]*([^\r\n]*)', header[1], re.M)
+        value = values[0].strip() if len(values) == 1 else ''
+        if value.startswith(('"', "'")):
+            if len(value) < 2 or value[-1] != value[0]:
+                value = ''
+            else:
+                value = value[1:-1].strip()
+        elif value.startswith(('#', '|', '>', '[', '{', '!', '&', '*')) or value.lower() in ('null', '~', 'true', 'false'):
+            value = ''
+        if not value:
+            return {'error': f'머리말의 {key} 값은 비어 있지 않은 한 줄 텍스트로 한 번만 적어 주세요.'}, 400
+        fields[key] = value
+    return save_skill(content, skill_slug(fields['name']), overwrite=False)
+
+
 def my_skills():
     result = []
     for f in (DATA / 'skills').glob('*/SKILL.md'):
@@ -597,13 +654,10 @@ def post(path, body):
         content = str(body['content'])
         if not content.strip() or len(content) > 200_000:
             raise ValueError
-        slug = str(body.get('slug') or re.sub(r'[^a-z0-9]+', '-', front(content, 'name').lower()).strip('-'))[:60]
-        if not SLUG.match(slug):
-            return {'error': '스킬 이름(name)을 영문·숫자로 정해 주세요. 예: name: my-skill'}, 400
-        with LOCK:
-            (DATA / 'skills' / slug).mkdir(parents=True, exist_ok=True)
-            (DATA / 'skills' / slug / 'SKILL.md').write_text(content, encoding='utf-8')
-        return {'slug': slug}, 201
+        slug = str(body.get('slug') or skill_slug(front(content, 'name')))[:60]
+        return save_skill(content, slug)
+    if path == '/api/local/experiments/import-skill':
+        return import_skill(body.get('file_id'))
     if path == '/api/local/experiments':
         item = {'id': os.urandom(6).hex(), 'created': datetime.now(timezone.utc).isoformat()}
         for key in ('skill', 'title', 'input', 'result'):

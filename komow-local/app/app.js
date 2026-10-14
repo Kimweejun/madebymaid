@@ -79,6 +79,7 @@ function route() {
   S.page = PAGES[page] ? page : 'home';
   S.arg = decodeURIComponent(rest.join('/'));
   if (S.page === 'workshop' && S.arg.startsWith('lab')) S.sub.workshop = 'lab';
+  if (S.page === 'skills' && ['mine', 'library'].includes(S.arg)) S.sub.skills = S.arg;
   document.querySelectorAll('#nav a').forEach(a => a.dataset.page === S.page ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   $('#title').textContent = PAGES[S.page][0]; $('#subtitle').textContent = PAGES[S.page][1];
   paintMaids();
@@ -431,6 +432,28 @@ async function showPrompts(x, fresh) {
   if (fresh) toast(await copyText(x.prompts[x.maids[0]]) ? `${x.no} 지시문을 복사했어요.` : `${x.no}를 만들었어요. 복사 버튼을 눌러 주세요.`);
 }
 
+const skillImports = new Map();
+function skillImportActions(id) {
+  const state = skillImports.get(id) || {};
+  if (state.slug) return `<span role="status">등록 완료 · ${esc(state.slug)}</span> <a class="btn small" href="#skills/mine">내 스킬로 이동</a>`;
+  return `<button class="btn small" data-import-skill="${esc(id)}"${state.pending ? ' disabled' : ''}>${state.pending ? '등록 중…' : '내 스킬로 등록'}</button>${state.error ? ` <span role="alert">${esc(state.error)}</span>` : ''}`;
+}
+async function importExperimentSkill(id, host) {
+  if (skillImports.get(id)?.pending || skillImports.get(id)?.slug) return;
+  const draw = () => host.querySelectorAll('[data-skill-import-row]').forEach(row => {
+    if (row.dataset.skillImportRow === id) row.innerHTML = skillImportActions(id);
+  });
+  skillImports.set(id, {pending: true}); draw();
+  try {
+    const {slug} = await api('/api/local/experiments/import-skill', 'POST', {file_id: id});
+    skillImports.set(id, {slug});
+    toast(`내 스킬로 등록했어요 · ${slug}`);
+  } catch (err) {
+    skillImports.set(id, {error: err.message});
+    toast(err.message);
+  }
+  draw();
+}
 function expCard(x) {
   const [st, tone] = EXP_STATUS[x.status] || ['직접 기록', ''];
   const u = safeURL(x.url);
@@ -438,7 +461,7 @@ function expCard(x) {
   const RUN = {running: ['진행 중…', 'accent'], done: ['끝남', 'ok'], failed: ['실패', 'warn'], ended: ['끝남 (서버 재시작)', '']};
   const run = m => { const r = (x.runs || {})[m]; if (!r) return ''; const [l, tone] = RUN[r.state] || [r.state, '']; return `<span class="tag ${tone}">${l}${r.task === 'image' ? ' · 그림' : ''}${r.note ? ' · ' + esc(r.note) : ''}</span><button class="btn small" data-runlog="${esc(x.id)}:${m}">기록 보기</button>`; };
   const again = m => (x.runs || {})[m]?.state === 'running' ? '' : `<button class="btn small" data-rerun="${esc(x.id)}:${m}">${(x.runs || {})[m] ? '다시 맡기기' : '맡기기'}</button>`;
-  const col = m => `<div class="exp-col"><div class="item-meta" style="margin:0 0 4px"><b>${MAID_NAME[m]}</b>${run(m)}</div>${files(m).map(r => r.web ? `<div class="bar" style="margin:0 0 4px"><a class="btn small primary" href="${esc(safeURL(r.web))}" target="_blank" rel="noopener noreferrer">웹으로 보기 ↗</a><span class="muted">${esc(r.web)}</span></div>` : `<div class="result-row"><div class="bar" style="margin:0 0 4px"><span class="ftype">${esc(fileKind(r.name).label)}</span><a href="/api/local/files/${esc(r.id)}" download>${esc(r.name)}</a><span class="grow"></span><button class="btn small" data-preview="${esc(r.id)}" data-name="${esc(r.name)}" aria-expanded="false">펼치기</button><a class="btn small" href="#outputs/${esc(r.id)}">산출물에서 보기</a></div><div class="preview" hidden></div></div>`).join('') || `<div class="bar" style="margin:0"><span class="muted">결과를 기다리는 중</span></div>`}<div class="bar" style="margin:6px 0 0">${again(m)}<button class="btn small" data-reprompt="${esc(x.id)}">지시문 복사</button></div></div>`;
+  const col = m => `<div class="exp-col"><div class="item-meta" style="margin:0 0 4px"><b>${MAID_NAME[m]}</b>${run(m)}</div>${files(m).map(r => r.web ? `<div class="bar" style="margin:0 0 4px"><a class="btn small primary" href="${esc(safeURL(r.web))}" target="_blank" rel="noopener noreferrer">웹으로 보기 ↗</a><span class="muted">${esc(r.web)}</span></div>` : `<div class="result-row"><div class="bar" style="margin:0 0 4px"><span class="ftype">${esc(fileKind(r.name).label)}</span><a href="/api/local/files/${esc(r.id)}" download>${esc(r.name)}</a><span class="grow"></span><button class="btn small" data-preview="${esc(r.id)}" data-name="${esc(r.name)}" aria-expanded="false">펼치기</button><a class="btn small" href="#outputs/${esc(r.id)}">산출물에서 보기</a>${/SKILL\.md$/i.test(r.name) ? `<span data-skill-import-row="${esc(r.id)}">${skillImportActions(r.id)}</span>` : ''}</div><div class="preview" hidden></div></div>`).join('') || `<div class="bar" style="margin:0"><span class="muted">결과를 기다리는 중</span></div>`}<div class="bar" style="margin:6px 0 0">${again(m)}<button class="btn small" data-reprompt="${esc(x.id)}">지시문 복사</button></div></div>`;
   return `<article class="card exp-card" id="${esc(x.no || x.id)}"><div class="item-meta" style="margin:0 0 4px">${x.no ? `<span class="tag accent">${esc(x.no)}</span>` : ''}${x.kind ? `<span class="tag">${esc(EXP_KINDS.find(k => k[0] === x.kind)?.[1] || x.kind)}</span>` : ''}${x.skill ? `<span class="tag accent">${esc(x.skill)}</span>` : ''}<span class="tag ${tone}">${st}</span><span>${esc(new Date(x.created).toLocaleString('ko-KR'))}</span></div>
     <${u ? `a href="${esc(u)}" target="_blank" rel="noopener noreferrer"` : 'div'} class="item-title">${esc(x.title)}</${u ? 'a' : 'div'}>${tagChips(x.tags)}
     ${x.maids ? `<div class="grid ${x.maids.length > 1 ? 'g2' : ''}" style="gap:12px;margin-top:10px">${x.maids.map(col).join('')}</div>` : x.input ? `<pre class="doc">${esc(x.input)}</pre>` : ''}
@@ -457,6 +480,7 @@ async function renderLab(host) {
   $('#xf').onclick = e => { const b = e.target.closest('[data-xf]'); if (b) { S.cache.expFilter = b.dataset.xf; renderLab(host); } };
   $('#logs').onsubmit = async e => { const fm = e.target.closest('[data-rate]'); if (!fm) return; e.preventDefault(); try { await api('/api/local/experiments/rate', 'POST', {id: fm.dataset.rate, rating: Number(fm.rating.value), result: fm.result.value}); toast('평가를 저장했어요.'); renderLab(host); } catch (err) { toast(err.message); } };
   $('#logs').onclick = async e => {
+    const si = e.target.closest('[data-import-skill]'); if (si) { await importExperimentSkill(si.dataset.importSkill, host); return; }
     const d = e.target.closest('[data-dellog]'); if (d && confirm('이 실험 기록을 삭제할까요? 산출물 파일은 그대로 남아요.')) { await api('/api/local/experiments?id=' + d.dataset.dellog, 'DELETE').catch(err => toast(err.message)); renderLab(host); }
     const r = e.target.closest('[data-reprompt]'); if (r) showPrompts(experiments.find(x => x.id === r.dataset.reprompt));
     const ir = e.target.closest('[data-imgrun]'); if (ir) { try { await api('/api/local/experiments/run', 'POST', {id: ir.dataset.imgrun, maid: 'rem', task: 'image'}); toast('렘에게 그림을 맡겼어요.'); renderLab(host); } catch (err) { toast(err.message); } }

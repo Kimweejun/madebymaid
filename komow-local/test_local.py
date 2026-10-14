@@ -75,6 +75,70 @@ class LocalTests(unittest.TestCase):
         self.assertEqual(self.call('/api/local/my-skills?slug=..','DELETE')[0],404)
         self.assertEqual(self.call('/api/local/my-skills?slug=my-skill-1','DELETE')[0],200)
         self.assertEqual(self.call('/api/local/my-skills')[1]['skills'],[])
+    def test_experiment_import_skill(self):
+        # Real HTTP calls, but every file/skill stays in a temporary data directory.
+        previous = workspace.DATA
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace.DATA = Path(tmp)
+            try:
+                endpoint = '/api/local/experiments/import-skill'
+                def upload(raw, name='EXP-0000-01_SKILL.md'):
+                    if isinstance(raw, str): raw = raw.encode('utf-8')
+                    code, item = self.call('/api/local/files', 'POST', {'name': name, 'content': base64.b64encode(raw).decode()})
+                    self.assertIn(code, (200, 201))
+                    return item['id']
+                def register(raw, name='EXP-0000-01_SKILL.md'):
+                    return self.call(endpoint, 'POST', {'file_id': upload(raw, name)})
+                content = '---\r\nname: "My Skill 1"\r\ndescription: "테스트 스킬"\r\n---\r\n# 본문\r\n'
+                fid = upload(content)
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    replies = list(pool.map(lambda _: self.call(endpoint, 'POST', {'file_id': fid}), range(2)))
+                self.assertEqual(sorted(code for code, _ in replies), [201, 409])
+                self.assertEqual(next(body for code, body in replies if code == 201), {'slug': 'my-skill-1'})
+                target = workspace.DATA / 'skills/my-skill-1/SKILL.md'
+                self.assertEqual(target.read_bytes(), content.encode('utf-8'))
+                code, body = register(content.replace('# 본문', '# 덮어쓰기 금지'))
+                self.assertEqual(code, 409); self.assertIn('이미', body['error'])
+                self.assertEqual(target.read_bytes(), content.encode('utf-8'))
+                self.assertEqual(self.call('/api/local/my-skills?slug=my-skill-1')[1]['content'], content.replace('\r\n', '\n'))
+                # The existing editor still updates that skill using the shared save rules.
+                edited = content.replace('# 본문', '# 편집')
+                self.assertEqual(self.call('/api/local/my-skills', 'POST', {'slug': 'my-skill-1', 'content': edited})[0], 201)
+                self.assertEqual(target.read_bytes(), edited.encode('utf-8'))
+                invalid = [
+                    ('name: outside\ndescription: no header', '머리말'),
+                    ('intro\n---\nname: outside\ndescription: late\n---', '맨 위'),
+                    ('---\nname: unclosed\ndescription: missing delimiter', '머리말'),
+                    ('---\nname: missing\n---\ndescription: body only', 'description'),
+                    ('---\ndescription: missing name\n---\nname: body-only', 'name'),
+                    ('---\nname: \ndescription: not a name\n---', 'name'),
+                    ('---\nname: blank\ndescription: ""\n---', 'description'),
+                    ('---\nname: duplicate\nname: duplicate-2\ndescription: ambiguous\n---', 'name'),
+                    ('---\nname: ../..\ndescription: unsafe\n---', '이름'),
+                    ('---\nname: CON\ndescription: reserved\n---', '이름'),
+                    ('---\nname: bad\ndescription: !execute something\n---', 'description'),
+                    ('---\nname: huge\ndescription: huge\n---\n' + 'x' * 200_000, '200,000'),
+                    (b'---\nname: bad\ndescription: \xff\n---', 'UTF-8'),
+                ]
+                for raw, message in invalid:
+                    with self.subTest(message=message, content=str(raw)[:65]):
+                        code, body = register(raw)
+                        self.assertEqual(code, 400); self.assertIn(message, body['error'])
+                self.assertEqual(register('---\nname: wrong-file\ndescription: txt\n---', 'report.txt')[0], 400)
+                for file_id in (None, {}, '../outside', 'abc'):
+                    self.assertEqual(self.call(endpoint, 'POST', {'file_id': file_id})[0], 400)
+                self.assertEqual(self.call(endpoint, 'POST', {'file_id': '0' * 64})[0], 404)
+                # BOM, normalization, and length use the same rules as the editor.
+                self.assertEqual(register('\ufeff---\nname: ../Safe Name\ndescription: utf8 bom\n---')[1], {'slug': 'safe-name'})
+                self.assertEqual(register('---\nname: ' + 'a' * 70 + '\ndescription: long name\n---')[1], {'slug': 'a' * 60})
+                folder = workspace.DATA / 'skills/taken'
+                folder.mkdir(); (folder / 'keep.txt').write_text('keep')
+                self.assertEqual(register('---\nname: taken\ndescription: occupied folder\n---')[0], 409)
+                self.assertEqual((folder / 'keep.txt').read_text(), 'keep')
+            finally:
+                workspace.DATA = previous
+
     def test_workspace_experiments(self):
         code,item=self.call('/api/local/experiments','POST',{'title':'첫 실험','rating':9})
         self.assertEqual((code,item['rating']),(201,5))
