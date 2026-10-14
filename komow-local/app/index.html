@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>메이드 바이 메이드</title>
+<link rel="icon" href="/app/favicon.png">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="/app/app.css">
+<script defer src="/app/app.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="side" id="side" aria-label="주 메뉴">
+    <a class="brand" href="#home">
+      <span class="logo"><img src="/app/logo-horizontal.png" alt="메이드 바이 메이드 (MADE BY MAID)"></span>
+    </a>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-maids" id="side-maids" aria-label="렘·람 작업 상태"></div>
+    <div class="side-foot">
+      <button class="ghost" id="theme" type="button">테마 바꾸기</button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="icon menu" id="menu" type="button" aria-label="메뉴 열기" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div>
+        <h1 id="title"></h1>
+        <p id="subtitle"></p>
+      </div>
+    </header>
+    <main id="view" tabindex="-1"></main>
+  </div>
+</div>
+<dialog id="dlg"><div id="dlg-body"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

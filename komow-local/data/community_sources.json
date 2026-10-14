@@ -1,0 +1,14 @@
+{
+ "reddit": [
+  "LocalLLaMA",
+  "ClaudeAI",
+  "OpenAI",
+  "ChatGPT",
+  "MachineLearning"
+ ],
+ "github_keywords": [
+  "mcp server",
+  "agent skills",
+  "llm agent"
+ ]
+}

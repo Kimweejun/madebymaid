@@ -1,0 +1,7 @@
+Generator: built-in image_gen, edit mode
+Date: 2026-10-14
+Reference: made-by-maid-logo-v1.png
+Output: made-by-maid-logo-white-preview-v1.png
+This is a generated white-background presentation companion; use the original RGBA PNG for transparent placement.
+
+Create a white-background presentation copy of this exact MADE BY MAID logo. Preserve the maid-uniform emblem, its geometry, black-and-white colors, and the exact existing wordmark "MADE BY MAID". Place the entire existing transparent design on a uniform opaque pure white background so its black silhouette and black lettering are clearly visible. No other changes, no mockup, no new elements, no extra text, no border, no shadow. This is a flat white preview companion to the original transparent PNG.

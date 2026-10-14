@@ -1,0 +1,18 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "komow-local/app/app.css",
+          "komow-local/app/index.html"
+        ],
+        "createdAt": "2026-10-14T04:26:19.439Z",
+        "reason": "user confirmed 2026-10-13: dark theme should be near-black with purple effects/glows on boxes"
+      }
+    ]
+  }
+}

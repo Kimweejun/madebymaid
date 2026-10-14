@@ -1,0 +1,35 @@
+# 메이드 바이 메이드 — 이 PC 안에서만 쓰는 변경 기록 (원격 저장소 없음).
+# 코드·문서·스킬·사용자 설정만 기록합니다. 렘(Codex)·람(Claude) 모두 같은 기록을 씁니다.
+
+# 비밀 정보 (절대 기록하지 않음)
+komow-local/data/secrets.json
+
+# 수집·상태 데이터: 자주 바뀌고 다시 받을 수 있음. 사용자가 직접 정한 설정만 남김
+komow-local/data/*
+!komow-local/data/skills/
+!komow-local/data/community_sources.json
+!komow-local/data/bookmarks.json
+!komow-local/data/feedback.json
+!komow-local/data/tags_override.json
+
+# 큰 실행 파일·원본 자료·보관본
+komow-local/site/
+a4ai-import/
+backup/
+
+# 작업 결과·실험 폴더·별도 저장소(공개 보고서)
+outputs/
+실험실/
+madebymaid-reports/
+
+# 실행 중 생기는 파일
+komow-local/server.log
+komow-local/server-error.log
+komow-local/server.pid
+komow-local/phone-address.txt
+__pycache__/
+*.pyc
+
+# 도구가 만드는 캐시·옛 백업
+**/.impeccable/hook.cache.json
+komow-local/.backup-*/

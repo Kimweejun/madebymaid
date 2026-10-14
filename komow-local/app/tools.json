@@ -1,0 +1,242 @@
+[
+ {
+  "slug": "motion-toolkit",
+  "title": "모션 디자인 툴킷 20",
+  "desc": "GitHub 원본 20개 · 꼬무리 10초 MP4 17종 · 나란히 재생·품질 비교",
+  "url": "/komow_app/labs/motion-toolkit/index.html?v=261012-benchmark17",
+  "login": false,
+  "category": "미디어"
+ },
+ {
+  "slug": "motion",
+  "title": "모션 스킬 시험장",
+  "desc": "트위터 화제의 모션 그래픽 스킬을 하나씩 받아 같은 주제로 만들어 본 결과 · 영상·검수 시트·판정",
+  "url": "/komow_app/labs/motion/index.html?v=261011-unified5",
+  "login": false,
+  "category": "미디어"
+ },
+ {
+  "slug": "oiu",
+  "title": "오픈인텔리전트UI 결과",
+  "desc": "프롬프트 한 줄로 만든 대화형 화면 모음 · 치지직 게시판 대시보드·계산기·3D 설명",
+  "url": "/komow_app/labs/oiu/index.html?v=261011-unified5",
+  "login": false,
+  "category": "그래픽·시각화"
+ },
+ {
+  "slug": "vgpu",
+  "title": "vGPU 그래픽 실험실",
+  "desc": "공식 WebGPU 예제 30종 · 코드 수정·바로 실행 · 마우스·드래그 · 기본 실험 3종",
+  "url": "/komow_app/labs/vgpu/index.html?v=261011-unified5&example=gradient&edit=1",
+  "login": false,
+  "category": "그래픽·시각화"
+ },
+ {
+  "slug": "d3-lab",
+  "title": "d3 실험 기록판",
+  "desc": "Claude d3.js 스킬로 만든 시각화 4종 · 실험실 연결망·부하 곡선·렌더 비용·35화풍 완성도",
+  "url": "/komow_app/labs/d3-lab/index.html?v=261011-unified5",
+  "login": false,
+  "category": "그래픽·시각화"
+ },
+ {
+  "slug": "huashu-art-motion",
+  "title": "화숙 아트 모션",
+  "desc": "그림을 코드로 그려 움직이는 Claude 스킬 · 35화풍 갤러리·해설 문법 8종·미술사 스피드런 렌더",
+  "url": "/komow_app/labs/huashu-art-motion/index.html?v=261011-unified5",
+  "login": false,
+  "category": "미디어"
+ },
+ {
+  "slug": "island-fishing",
+  "title": "섬 낚시",
+  "desc": "Unity 6 WebGL 게임 · Claude Code(a4ai002)가 Blender MCP로 자산 5종을 만들고 Unity로 조립 · WASD 걷기 · Space 던지기 · 1/2/3 미끼 · E 낚기",
+  "url": "/komow_app/labs/island-fishing/index.html?v=261012-w2",
+  "login": false,
+  "category": "게임"
+ },
+ {
+  "slug": "shade-runner",
+  "title": "그늘 달리기",
+  "desc": "LittleJS 1.26 실험 게임 · 움직이는 해의 긴 그림자 속으로 피하기 · 자갈 2,400개 충돌 부하 실험",
+  "url": "/komow_app/labs/shade-runner/index.html?v=261011-unified5",
+  "login": false,
+  "category": "게임"
+ },
+ {
+  "slug": "shaders",
+  "title": "Shaders 그래픽 작업실",
+  "desc": "공식 무료 WebGPU 컴포넌트 · 레이어·속성 조합 · 프레임워크 코드 내보내기",
+  "url": "/komow_app/labs/shaders/index.html?v=261011-unified5",
+  "login": false,
+  "category": "그래픽·시각화"
+ },
+ {
+  "slug": "artcraft",
+  "title": "Craft 작업실",
+  "desc": "12종 대체 웹 앱을 탭으로 전환",
+  "url": "/komow_app/labs/artcraft/index.html?v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-photocraft",
+  "title": "PhotoCraft",
+  "desc": "이미지 편집 · Photoshop형 대체 · v0.7.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=photocraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-lightcraft",
+  "title": "LightCraft",
+  "desc": "사진 현상 · Lightroom형 대체 · v0.6.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=lightcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-vectorcraft",
+  "title": "VectorCraft",
+  "desc": "벡터 디자인 · Illustrator형 대체 · v0.9.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=vectorcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-designcraft",
+  "title": "DesignCraft",
+  "desc": "페이지 레이아웃 · InDesign형 대체 · v0.6.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=designcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-effectcraft",
+  "title": "EffectCraft",
+  "desc": "모션 그래픽 · After Effects형 대체 · v0.8.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=effectcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-filmcraft",
+  "title": "FilmCraft",
+  "desc": "영상 편집 · Premiere Pro형 대체 · v0.6.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=filmcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-soundcraft",
+  "title": "SoundCraft",
+  "desc": "오디오 믹싱 · Pro Tools형 대체 · v0.5.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=soundcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-pdfcraft",
+  "title": "PdfCraft",
+  "desc": "PDF 문서 · Acrobat형 대체 · v0.6.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=pdfcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-wordcraft",
+  "title": "WordCraft",
+  "desc": "문서 작성 · Word형 대체 · v0.5.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=wordcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-gridcraft",
+  "title": "GridCraft",
+  "desc": "스프레드시트 · Excel형 대체 · v0.5.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=gridcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-deckcraft",
+  "title": "DeckCraft",
+  "desc": "프레젠테이션 · PowerPoint형 대체 · v0.5.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=deckcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "craft-cadcraft",
+  "title": "CadCraft",
+  "desc": "CAD 도면 · AutoCAD형 대체 · v0.5.0",
+  "url": "/komow_app/labs/artcraft/index.html?app=cadcraft&v=261011-craft12",
+  "login": false,
+  "category": "Craft 오피스"
+ },
+ {
+  "slug": "ashen-seoul-sdk",
+  "title": "잿빛 서울 개발 SDK",
+  "desc": "누구나 받아서 고치는 게임 개발 키트 · git 저장소·압축·엔진 API·빌드와 검사 명령",
+  "url": "/komow_app/labs/ashen-seoul/sdk/index.html?v=261011-unified5",
+  "login": false,
+  "category": "게임"
+ },
+ {
+  "slug": "ashen-seoul",
+  "title": "잿빛 서울",
+  "desc": "폐허 서울 액션 RPG · 지하 던전·세력 이야기·소매치기 · 키보드와 마우스로",
+  "url": "/komow_app/labs/ashen-seoul/index.html?v=261011-unified5",
+  "login": false,
+  "category": "게임"
+ },
+ {
+  "slug": "mediabunny",
+  "title": "Mediabunny 미디어 변환",
+  "desc": "내 브라우저에서 영상·오디오 구간 자르기와 형식 변환",
+  "url": "/komow_app/labs/mediabunny/index.html?v=261011-unified5",
+  "login": false,
+  "category": "미디어"
+ },
+ {
+  "slug": "brag",
+  "title": "Brag 홍보영상 제작",
+  "desc": "프로젝트 소개 20초 영상 · 음악·공유 문구 · GitHub 업데이트 확인",
+  "url": "/komow_app/labs/brag/index.html?v=261011-unified5",
+  "login": false,
+  "category": "실험"
+ },
+ {
+  "slug": "mcp",
+  "title": "MCP 도구 맛보기",
+  "desc": "웹 읽기·파일 읽기·Git 이력 직접 체험 · MCP 서버 목록 검색",
+  "url": "/komow_app/labs/mcp/index.html?v=261011-unified5",
+  "login": false,
+  "category": "실험"
+ },
+ {
+  "slug": "driveupload",
+  "title": "Drive 업로드·자료실 등록",
+  "desc": "파일 저장·중복 방지·등록 재시도 · 연습 및 실제 Drive 연결",
+  "url": "/komow_app/labs/drive-upload/index.html?v=261011-unified5",
+  "login": false,
+  "category": "문서·자료"
+ },
+ {
+  "slug": "rhwp",
+  "title": "HWP·HWPX 문서 뷰어",
+  "desc": "한글 첨부파일 바로 보기 · rhwp · GitHub 업데이트 확인",
+  "url": "/komow_app/rhwp/index.html",
+  "login": false,
+  "category": "문서·자료"
+ },
+ {
+  "slug": "jizura",
+  "title": "JIZURA 가사 모션 메이커",
+  "desc": "한국어 영상 편집기 · GitHub 업데이트 확인",
+  "url": "/komow_app/jizura.html?embed=1",
+  "login": false,
+  "category": "미디어"
+ }
+]

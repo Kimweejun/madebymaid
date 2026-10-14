@@ -1,0 +1,566 @@
+[
+ {
+  "id": "bizinfo",
+  "name": "기업마당",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200View.do",
+  "page_param": "cpage",
+  "pages": 100
+ },
+ {
+  "id": "kstartup",
+  "name": "K-Startup",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do",
+  "link": "https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view&pbancSn={id}",
+  "page_param": "page",
+  "pages": 15
+ },
+ {
+  "id": "smtech",
+  "name": "SMTECH 중소기업기술개발",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.smtech.go.kr/front/ifg/no/notice02_list.do",
+  "page_param": "pageIndex",
+  "pages": 3
+ },
+ {
+  "id": "kosmes",
+  "name": "중소벤처기업진흥공단",
+  "group": "A",
+  "region": "전국",
+  "parser": "json",
+  "url": "https://www.kosmes.or.kr/sh/nts/notice_list.json",
+  "body": "nowPage=%N%&pageCount=10&rowCount=10&activatedTab=01&param=proc%3DList",
+  "items_path": "ds_infoList",
+  "fields": {
+   "title": "TITL_NM",
+   "id": "SLNO",
+   "date": "REG_DTM"
+  },
+  "link": "https://www.kosmes.or.kr/nsh/SH/NTS/SHNTS001F0.do?seqNo={id}",
+  "pages": 4,
+  "note": "사업공고와 일반 공지가 섞여 있음"
+ },
+ {
+  "id": "sbiz24",
+  "name": "소상공인24",
+  "group": "A",
+  "region": "전국",
+  "parser": "json",
+  "url": "https://www.sbiz24.kr/api/pbanc/sbiz24PbancList",
+  "body": "{\"sortModel\":[],\"search\":{},\"paging\":true,\"startRow\":%START%,\"endRow\":%END%}",
+  "page_size": 20,
+  "headers": {
+   "Origin-Method": "GET"
+  },
+  "items_path": "data.default.list",
+  "fields": {
+   "title": "pbancNm",
+   "id": "pbancSn",
+   "start": "rcptPd.from",
+   "end": "rcptPd.to"
+  },
+  "link": "https://www.sbiz24.kr/#/pbanc/{id}",
+  "pages": 26,
+  "note": "소상공인시장진흥공단 대체"
+ },
+ {
+  "id": "exportvoucher",
+  "name": "수출바우처",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.exportvoucher.com/portal/board/boardList?bbs_id=1",
+  "link": "https://www.exportvoucher.com/portal/board/boardView?bbs_id=1&ntt_id={id}",
+  "pages": 1,
+  "note": "robots Crawl-delay 60초라 1페이지만"
+ },
+ {
+  "id": "nipa",
+  "name": "정보통신산업진흥원(NIPA)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.nipa.kr/home/2-2",
+  "page_param": "curPage",
+  "pages": 4,
+  "note": "AI바우처 주관기관"
+ },
+ {
+  "id": "nia",
+  "name": "한국지능정보사회진흥원(NIA)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.nia.or.kr/site/nia_kor/ex/bbs/List.do?cbIdx=99835",
+  "link": "https://www.nia.or.kr/site/nia_kor/ex/bbs/View.do?cbIdx={0}&bcIdx={1}&parentSeq={3}",
+  "page_param": "pageIndex",
+  "pages": 6
+ },
+ {
+  "id": "kisa",
+  "name": "한국인터넷진흥원(KISA)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.kisa.or.kr/401",
+  "page_param": "page",
+  "pages": 17
+ },
+ {
+  "id": "keit",
+  "name": "한국산업기술평가관리원(KEIT)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://srome.keit.re.kr/srome/biz/perform/opnnPrpsl/retrieveTaskAnncmListView.do?prgmId=XPG201040000",
+  "link": "https://srome.keit.re.kr/srome/biz/perform/opnnPrpsl/retrieveTaskAnncmInfoView.do?prgmId=XPG201040000&ancmId={0}&bsnsYy={1}",
+  "split": "class=\"table_box",
+  "page_param": "pageIndex",
+  "pages": 6
+ },
+ {
+  "id": "kiat",
+  "name": "한국산업기술진흥원(KIAT)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.kiat.or.kr/front/board/boardContentsListAjax.do?board_id=90&MenuId=b159c9dac684471b87256f1e25404f5e&miv_pageNo=1&miv_pageSize=10",
+  "link": "https://www.kiat.or.kr/front/board/boardContentsView.do?board_id=90&MenuId=b159c9dac684471b87256f1e25404f5e&contents_id={0}",
+  "page_param": "miv_pageNo",
+  "pages": 6
+ },
+ {
+  "id": "kiria",
+  "name": "한국로봇산업진흥원",
+  "group": "B",
+  "region": "대구",
+  "url": "https://www.kiria.org/portal/info/portalInfoBusinessList.do",
+  "link": "https://www.kiria.org/portal/info/portalInfoBusinessWrite.do?mode=update&ibusCode={0}",
+  "page_param": "pageIndex",
+  "pages": 3
+ },
+ {
+  "id": "kotra",
+  "name": "KOTRA 사업신청",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.kotra.or.kr/module/subhome/bizAply/selectBmBizAllListAjax.do",
+  "post": "sch_nation_cd=Y&pageSize=10",
+  "page_param": "startCount",
+  "page_step": 10,
+  "split": "card-header-meta-data",
+  "pages": 3
+ },
+ {
+  "id": "kita",
+  "name": "한국무역협회(KITA)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.kita.net/asocBiz/asocBiz/asocBizOngoingList.do",
+  "link": "https://www.kita.net/asocBiz/asocBiz/asocBizOngoingDetail.do?bizAltkey={id}",
+  "page_param": "pageIndex",
+  "pages": 9
+ },
+ {
+  "id": "icmtc",
+  "name": "민군협력진흥원",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.icmtc.re.kr/board?menuId=MENU00333&siteId=null",
+  "page_param": "pageNum",
+  "pages": 2
+ },
+ {
+  "id": "krit",
+  "name": "국방기술진흥연구소",
+  "group": "B",
+  "region": "전국",
+  "url": "https://krit.re.kr/krit/bbs/notice_list.do?gotoMenuNo=05010000",
+  "link": "https://krit.re.kr/krit/bbs/notice_view.do?bbs_id=notice&article_id={1}",
+  "pages": 1,
+  "note": "robots.txt는 자동 수집 금지. 사용자 결정(2026-10-14)으로 첫 페이지만 3시간에 한 번 조회"
+ },
+ {
+  "id": "itp",
+  "name": "인천테크노파크",
+  "group": "D",
+  "region": "인천",
+  "url": "https://www.itp.or.kr/intro.asp?tmid=13",
+  "link": "/intro.asp?tmid=13&seq={id}",
+  "page_param": "PageNum",
+  "pages": 10
+ },
+ {
+  "id": "gjtp",
+  "name": "광주테크노파크",
+  "group": "D",
+  "region": "광주",
+  "url": "https://www.gjtp.or.kr/home/business.cs",
+  "page_param": "pageIndex",
+  "pages": 2
+ },
+ {
+  "id": "djtp",
+  "name": "대전테크노파크",
+  "group": "D",
+  "region": "대전",
+  "url": "https://www.djtp.or.kr/pbanc?mid=a20101000000",
+  "page_param": "nPage",
+  "pages": 8
+ },
+ {
+  "id": "sjtp",
+  "name": "세종테크노파크",
+  "group": "D",
+  "region": "세종",
+  "url": "https://sjtp.or.kr/bbs/board.php?bo_table=business01",
+  "page_param": "page",
+  "pages": 3
+ },
+ {
+  "id": "gwtp",
+  "name": "강원테크노파크",
+  "group": "D",
+  "region": "강원",
+  "url": "https://www.gwtp.or.kr/gwtp/bbsNew_list.php?code=sub01b&keyvalue=sub01",
+  "pages": 1
+ },
+ {
+  "id": "jbtp",
+  "name": "전북테크노파크",
+  "group": "D",
+  "region": "전북",
+  "url": "https://www.jbtp.or.kr/board/list.jbtp?boardId=BBS_0000006&menuCd=DOM_000000102001000000&paging=ok",
+  "page_param": "pageNo",
+  "pages": 8
+ },
+ {
+  "id": "jntp",
+  "name": "전남테크노파크",
+  "group": "D",
+  "region": "전남",
+  "url": "https://www.jntp.or.kr/base/apiAnnouncement/List?menuLevel=2&menuNo=45",
+  "page_param": "nowPage",
+  "pages": 5
+ },
+ {
+  "id": "gntp",
+  "name": "경남테크노파크",
+  "group": "D",
+  "region": "경남",
+  "url": "https://www.gntp.or.kr/biz/apply",
+  "pages": 1
+ },
+ {
+  "id": "gbtp",
+  "name": "경북테크노파크",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.gbtp.or.kr/user/board.do?bbsId=BBSMSTR_000000000021&searchTerm=ing",
+  "link": "/user/boardDetail.do?bbsId=BBSMSTR_000000000021&nttNo={0}",
+  "page_param": "pageIndex",
+  "pages": 2
+ },
+ {
+  "id": "ttp",
+  "name": "대구테크노파크",
+  "group": "C",
+  "region": "대구",
+  "url": "https://www.ttp.org/bbs/BoardControll.do?bbsId=BBSMSTR_000000000003",
+  "link": "/bbs/BoardControllView.do?bbsId=BBSMSTR_000000000003&nttId={0}",
+  "page_param": "pageIndex",
+  "pages": 10,
+  "insecure_ssl": true,
+  "note": "사이트 인증서 체인 오류로 인증서 검증을 끄고 읽음"
+ },
+ {
+  "id": "ptp",
+  "name": "포항테크노파크",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.ptp.or.kr/main/board/index.do?menu_idx=116&manage_idx=15&board_idx=0",
+  "link": "/main/board/view.do?menu_idx=116&manage_idx=15&board_idx={id}",
+  "page_param": "viewPage",
+  "pages": 5
+ },
+ {
+  "id": "gitc",
+  "name": "경북IT융합산업기술원",
+  "group": "C",
+  "region": "경북",
+  "url": "https://gitc.or.kr/main/page?x=53",
+  "page_param": "page",
+  "pages": 3
+ },
+ {
+  "id": "gbtis",
+  "name": "경북과학기술정보서비스 R&D 공고",
+  "group": "C",
+  "region": "경북",
+  "url": "https://gbtis.re.kr/page/link.tc?mn=10013&pageNo=10020",
+  "link": "/board/view.tc?mn=10013&pageNo=10020&boardMngNo=3&boardNo={0}",
+  "pages": 1
+ },
+ {
+  "id": "postech_own",
+  "name": "POSTECH 창업지원(자체)",
+  "group": "C",
+  "region": "경북",
+  "url": "https://startup.postech.ac.kr/bbs/board.php?bo_table=sub2_1",
+  "page_param": "page",
+  "pages": 3
+ },
+ {
+  "id": "postech_other",
+  "name": "POSTECH 창업지원(타기관)",
+  "group": "C",
+  "region": "경북",
+  "url": "https://startup.postech.ac.kr/bbs/board.php?bo_table=sub2_2",
+  "page_param": "page",
+  "pages": 2
+ },
+ {
+  "id": "kovadg",
+  "name": "대구경북벤처기업협회",
+  "group": "C",
+  "region": "대구",
+  "url": "https://kovadg.or.kr/notice/notice.php",
+  "page_param": "page",
+  "pages": 2
+ },
+ {
+  "id": "geri",
+  "name": "구미전자정보기술원",
+  "group": "C",
+  "region": "경북",
+  "url": "https://geri.re.kr/html/board_list.asp?board_id=business",
+  "page_param": "page",
+  "pages": 10
+ },
+ {
+  "id": "gepa",
+  "name": "경북경제진흥원",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.gepa.kr/?page_id=36",
+  "split": "gallery-item-box",
+  "page_param": "board_page",
+  "pages": 5
+ },
+ {
+  "id": "daegu_eco",
+  "name": "대구시 산업·경제 소식",
+  "group": "C",
+  "region": "대구",
+  "url": "https://www.daegu.go.kr/eco/index.do?menu_id=00000427",
+  "link": "/eco/index.do?menu_id=00000427&menu_link=/icms/bbs/selectBoardArticle.do&bbsId=BBS_00029&nttId={1}",
+  "pages": 1,
+  "include": "지원|모집|공모|공고|참여|입주|육성|사업",
+  "exclude": "입찰|채용|장학|결과|선정 결과|합격|취소|정정|임용|인사|보궐|선거"
+ },
+ {
+  "id": "daegu_gosi",
+  "name": "대구시 고시공고",
+  "group": "C",
+  "region": "대구",
+  "url": "https://www.daegu.go.kr/index.do?menu_id=00940170",
+  "link": "/index.do?menu_id=00940170&menu_link=/front/daeguSidoGosi/daeguSidoGosiView.do&sno={0}&gosi_gbn={1}",
+  "page_param": "pageIndex",
+  "pages": 5,
+  "include": "지원|모집|공모|참여기업|입주|육성|바우처|창업|기업",
+  "exclude": "입찰|채용|장학|결과|합격|취소|정정|임용|인사|선거|P\\.Q|용역|평가위원|공사|청문|열람|도시|인가|결정|토지|보상"
+ },
+ {
+  "id": "gb_gosi",
+  "name": "경상북도 고시공고",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.gb.go.kr/page/link.do?mn=10109&pageNo=67",
+  "link": "/board/view.do?mn=10109&pageNo=67&boardMngNo=71&boardNo={0}",
+  "pages": 1,
+  "include": "지원|모집|공모|참여기업|입주|육성|바우처|창업|기업",
+  "exclude": "입찰|채용|장학|결과|합격|취소|정정|임용|인사|선거|P\\.Q|용역|평가위원|공사|청문|열람|도시|인가|결정|토지|보상"
+ },
+ {
+  "id": "dip",
+  "name": "대구디지털혁신진흥원",
+  "group": "C",
+  "region": "대구",
+  "url": "https://www.dip.or.kr/home/notice/businessbbs/boardList.ubs?fboardcd=business",
+  "link": "/home/notice/businessbbs/boardRead.ubs?fboardcd=business&fboardnum={1}",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "gcube_notice",
+  "name": "경북문화재단 콘텐츠진흥원",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.gcube.or.kr/home/sub1/sub1.asp",
+  "short_year": true,
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "gcube_related",
+  "name": "경북문화재단 콘텐츠진흥원(유관기관공고)",
+  "group": "C",
+  "region": "경북",
+  "url": "https://www.gcube.or.kr/home/sub4/sub3.asp",
+  "short_year": true,
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "seoultp",
+  "name": "서울테크노파크",
+  "group": "D",
+  "region": "서울",
+  "url": "https://www.seoultp.or.kr/user/nd19746.do",
+  "link": "/user/nd19746.do?View&boardNo={4}",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "gtp",
+  "name": "경기테크노파크",
+  "group": "D",
+  "region": "경기",
+  "url": "https://pms.gtp.or.kr/web/business/webBusinessList.do",
+  "link": "/web/business/webBusinessView.do?b_idx={id}",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "btp",
+  "name": "부산테크노파크",
+  "group": "D",
+  "region": "부산",
+  "url": "https://www.btp.or.kr/kor/CMS/Board/Board.do?mCode=MN013",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "cbtp",
+  "name": "충북테크노파크",
+  "group": "D",
+  "region": "충북",
+  "url": "https://www.cbtp.or.kr/index.php?control=bbs&board_id=saup_notice&lm_uid=387",
+  "pages": 1,
+  "robots_blocked": true,
+  "note": "이 PC에서 접속 시간 초과 (IP 차단 의심)",
+  "insecure_ssl": true
+ },
+ {
+  "id": "ctp",
+  "name": "충남테크노파크",
+  "group": "D",
+  "region": "충남",
+  "url": "https://www.ctp.or.kr/business/data.do",
+  "split": "<td class='text-left px-lg-4'>",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "jejutp",
+  "name": "제주테크노파크",
+  "group": "D",
+  "region": "제주",
+  "parser": "json",
+  "url": "https://www.jejutp.or.kr/board/business/list?keyword=&page=0&size=10&businessDiv=",
+  "headers": {
+   "Content-Type": "application/json"
+  },
+  "items_path": "content",
+  "fields": {
+   "title": "annoName",
+   "id": "annoId",
+   "date": "createdDate",
+   "start": "receiptSDate",
+   "end": "receiptEDate"
+  },
+  "link": "https://www.jejutp.or.kr/board/business/detail/{id}",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "iris",
+  "name": "IRIS 범부처통합연구지원시스템",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.iris.go.kr/contents/retrieveBsnsAncmBtinSituListView.do",
+  "link": "/contents/retrieveBsnsAncmView.do?ancmId={0}&ancmPrg={1}",
+  "pages": 1,
+  "robots_blocked": true,
+  "note": "NTIS·IITP 국가 R&D 공고도 여기로 모임"
+ },
+ {
+  "id": "ntis",
+  "name": "NTIS 국가R&D 사업공고",
+  "group": "A",
+  "region": "전국",
+  "url": "https://www.ntis.go.kr/rndgate/eg/un/ra/mng.do",
+  "link": "/rndgate/eg/un/ra/view.do?roRndUid={id}&flag=rndList",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "kdata",
+  "name": "데이터바우처(한국데이터산업진흥원)",
+  "group": "B",
+  "region": "전국",
+  "url": "https://kdata.or.kr/datavoucher/bg/nt/ptNoticeList.do",
+  "link": "/datavoucher/bg/nt/ptNoticeDetail.do?boardId={1}",
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "kocca",
+  "name": "한국콘텐츠진흥원",
+  "group": "B",
+  "region": "전국",
+  "url": "https://www.kocca.kr/kocca/pims/list.do?menuNo=204104",
+  "short_year": true,
+  "pages": 1,
+  "robots_blocked": true
+ },
+ {
+  "id": "ccei",
+  "name": "창조경제혁신센터",
+  "group": "B",
+  "region": "전국",
+  "parser": "json",
+  "url": "https://ccei.creativekorea.or.kr/daegu/custom/noticeList.json",
+  "body": "pn=%N%&pagePerContents=40",
+  "items_path": "result.list",
+  "fields": {
+   "title": "TITLE",
+   "id": "SEQ",
+   "date": "REG_DATE",
+   "region": "COUNTRY_NM"
+  },
+  "slugs": {
+   "서울": "seoul",
+   "부산": "busan",
+   "대구": "daegu",
+   "인천": "incheon",
+   "광주": "gwangju",
+   "대전": "daejeon",
+   "울산": "ulsan",
+   "세종": "sejong",
+   "경기": "gyeonggi",
+   "강원": "gangwon",
+   "충북": "chungbuk",
+   "충남": "chungnam",
+   "전북": "jeonbuk",
+   "전남": "jeonnam",
+   "경북": "gyeongbuk",
+   "경남": "gyeongnam",
+   "제주": "jeju"
+  },
+  "default_slug": "service",
+  "link": "https://ccei.creativekorea.or.kr/{slug}/custom/notice_view.do?no={id}",
+  "pages": 1,
+  "robots_blocked": true,
+  "note": "전국 17개 센터 공고가 한 곳으로 옴, 센터별 지역으로 나눔"
+ }
+]
