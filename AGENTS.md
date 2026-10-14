@@ -65,6 +65,7 @@
 | `madebymaid-tagging` | AI 기술·분야 태그 (기준표 `tags.json`) |
 | `madebymaid-viewer` | 결과물 펼쳐 보기·산출물 위치 이동 |
 | `madebymaid-worklog` | 작업 로그 읽기·기다리기·남기기 (상태 묻기 대신) |
+| `madebymaid-diagram-design` | 기술 구조·흐름·절차를 정적 HTML·SVG 도식으로 (EXP-1015-03에서 렘이 만들어 등록) |
 
 스킬 라이브러리(남이 만든 297개)는 `a4ai-import/sources` — 읽기만 합니다.
 
