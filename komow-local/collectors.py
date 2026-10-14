@@ -58,13 +58,17 @@ def collect_aitimes():
         rows = data.get('data') or []
         fresh = 0
         for r in rows:
+            # reg_date is when the reporter filed it; embargoed articles go public later (recognition_date/time)
+            when = (f"{r['recognition_date']}T{r.get('recognition_time') or '00:00:00'}" if r.get('recognition_date')
+                    else (r.get('reg_date') or '').replace(' ', 'T')) + '+09:00'
             if r['idxno'] in known:
+                known[r['idxno']]['date'] = when  # re-seen: fix dates stored from reg_date
                 continue
             known[r['idxno']] = {'id': r['idxno'], 'source': 'aitimes', 'title': strip_tags(r.get('title')),
                                  'summary': strip_tags(r.get('summary'))[:220],
                                  'url': 'https://www.aitimes.com/news/articleView.html?idxno=' + r['idxno'],
                                  'category': strip_tags(r.get('sectionTitle')) or '기타',
-                                 'date': (r.get('reg_date') or '').replace(' ', 'T') + '+09:00'}
+                                 'date': when}
             fresh += 1
         added += fresh
         oldest = min((r.get('reg_date') or '9') for r in rows) if rows else ''
