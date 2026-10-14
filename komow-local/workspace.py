@@ -134,7 +134,12 @@ def import_skill(file_id):
         if not value:
             return {'error': f'머리말의 {key} 값은 비어 있지 않은 한 줄 텍스트로 한 번만 적어 주세요.'}, 400
         fields[key] = value
-    return save_skill(content, skill_slug(fields['name']), overwrite=False)
+    result, code = save_skill(content, skill_slug(fields['name']), overwrite=False)
+    import worklog
+    no = EXP_NO.match(meta['name'])
+    worklog.log(no[1] if no else 'skills', 'user', 'done' if code == 201 else 'error',
+                f"skill import: {result.get('slug') or result.get('error')}", f"data/skills/{result.get('slug', '')}/SKILL.md" if code == 201 else meta['name'])
+    return result, code
 
 
 def my_skills():

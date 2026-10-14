@@ -35,6 +35,7 @@
 모든 작업(렘·람 실행, 실험, PPT 게시, 그림, 태그, 수집, 파일 보관)이 `logs/work.jsonl`에 **start · step · error · done**을 남깁니다. 맡긴 일의 상태를 묻지 않습니다.
 
 - 확인: `curl "http://127.0.0.1:8788/api/local/log?after=<마지막 n>&job=<EXP-번호>&wait=60"` → 새 사건이 생기면 바로, 없으면 60초 뒤 답. `done`이나 `error`가 나올 때까지 이것만 반복 (1~2초 간격으로 묻기 금지).
+- 스킬 등록·수정, 설정 변경처럼 결과가 남는 일은 모두 로그에 남깁니다 (사이트 버튼으로 한 것은 자동, 직접 파일을 고친 것은 아래 명령으로).
 - 직접 한 작업도 남김: `python komow-local/worklog.py <job> <rem|ram> <start|step|error|done> "<짧은 설명>" [ref]`
 - 자세한 형식·작업별 사건: 스킬 `madebymaid-worklog`
 
