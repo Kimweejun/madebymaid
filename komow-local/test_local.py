@@ -366,6 +366,12 @@ class LocalTests(unittest.TestCase):
         bad.write_text(json.dumps({'no':'EXP-1014-01','maid':'람','title':'t','theme':'현장','slides':sl,'conclusion':{'verdict':'추천','headline':'h','reasons':[{'text':'r'}]}}),encoding='utf-8')
         r=subprocess.run([sys.executable,str(Path(__file__).parent/'ppt'/'deck.py'),'build',str(bad)],capture_output=True,text=True,encoding='utf-8',env={**__import__('os').environ,'PYTHONIOENCODING':'utf-8'})
         self.assertIn('그래프·그림이 2개 이상',r.stderr)
+        import importlib.util as iu
+        sp=iu.spec_from_file_location('deck',Path(__file__).parent/'ppt'/'deck.py');deck=iu.module_from_spec(sp);sp.loader.exec_module(deck)
+        tmp=Path(self.tmp.name);(tmp/'flow.html').write_text('<html><svg viewBox="0 0 1028 728"></svg></html>',encoding='utf-8')
+        self.assertEqual(deck.visual_errors({'type':'diagram','file':'flow.html','caption':'본 도식은 흐름'},tmp),[])
+        self.assertTrue(deck.visual_errors({'type':'diagram','file':'flow.html'},tmp))  # caption required
+        self.assertTrue(deck.visual_errors({'type':'diagram','file':'none.html','caption':'x'},tmp))
     def test_outbox_ingest(self):
         import os,time
         box=Path(self.tmp.name)/'outputs';workspace.OUTBOX=box

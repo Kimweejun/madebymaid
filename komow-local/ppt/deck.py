@@ -15,6 +15,8 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -91,6 +93,14 @@ def visual_errors(v, folder):
     if not v:
         return []
     kind = v.get('type')
+    if kind == 'diagram':  # madebymaid-diagram-design: HTML/SVG drawn by 렘·람, turned into an image here
+        f = folder / (v.get('file') or '')
+        if not v.get('file') or not f.is_file() or f.suffix.lower() not in ('.html', '.htm', '.svg'):
+            return [f'도식 파일(.html 또는 .svg)이 없어요: {f}']
+        if '<svg' not in f.read_text(encoding='utf-8', errors='replace'):
+            return ['도식 파일 안에 <svg>가 없어요']
+        v['path'] = f
+        return [] if v.get('caption') else ['caption(도식 해설, 예: "본 도식은 ~ 흐름입니다")이 필요해요']
     if kind == 'image':
         if v.get('file'):
             f = folder / v['file']
@@ -104,7 +114,7 @@ def visual_errors(v, folder):
             errs.append('기사·자료 사진은 source(출처)가 필요해요')
         return errs
     if kind not in CHARTS:
-        return ['type은 bar·compare·pie·line·image 중 하나']
+        return ['type은 bar·compare·pie·line·image·diagram 중 하나']
     labels, series = v.get('labels') or [], v.get('series') or []
     want = {'bar': (1, 1), 'pie': (1, 1), 'compare': (2, 2), 'line': (1, 3)}[kind]
     errs = []
@@ -119,6 +129,38 @@ def visual_errors(v, folder):
     if not v.get('title'):
         errs.append('title(그래프 제목)이 필요해요')
     return errs
+
+
+EDGE = [r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe', r'C:\Program Files\Microsoft\Edge\Application\msedge.exe']
+
+
+def render_diagram(v, w, h, theme):
+    """Diagram HTML/SVG -> PNG of exactly w×h design px (×2 for sharpness) with headless Edge, cached next to the source.
+    The SVG may use var(--main) var(--soft) var(--point) var(--ink) var(--muted) var(--line) for the report theme."""
+    src = v['path'].resolve()  # Edge writes the screenshot from another process: relative paths land elsewhere
+    m = re.search(r'<svg.*</svg>', src.read_text(encoding='utf-8', errors='replace'), re.S)
+    png = src.with_name(f'{src.stem}.{w}x{h}.png')
+    page = src.with_name(f'{src.stem}.{w}x{h}.render.html')
+    page.write_text(f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>
+:root{{--main:{theme['main']};--soft:{theme['soft']};--point:{theme['point']};--ink:{INK};--muted:{MUTED};--line:{LINE};--paper:{PAPER}}}
+html,body{{margin:0;background:#fff}}svg{{display:block;width:{w}px;height:{h}px}}</style></head><body>{m[0]}</body></html>""", encoding='utf-8')
+    edge = next((e for e in EDGE if Path(e).is_file()), None)
+    if not edge:
+        sys.exit('설치 필요: Microsoft Edge — 도식을 그림으로 바꾸는 데 필요해요')
+    png.unlink(missing_ok=True)
+    profile = tempfile.mkdtemp(prefix='madebymaid-edge-')  # own profile per diagram: back-to-back renders must not share one
+    subprocess.run([edge, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=2',
+                    f'--window-size={w},{h}', f'--user-data-dir={profile}',
+                    f'--screenshot={png}', page.resolve().as_uri()], capture_output=True, timeout=120)
+    for _ in range(60):  # Edge hands the screenshot to a helper process and returns before the file is written
+        if png.is_file() and png.stat().st_size:
+            break
+        time.sleep(0.25)
+    page.unlink(missing_ok=True)
+    shutil.rmtree(profile, ignore_errors=True)
+    if not png.is_file():
+        sys.exit(f'도식을 그림으로 바꾸지 못했어요: {src.name}')
+    return png
 
 
 def reason_text(r):
@@ -263,10 +305,14 @@ def build_pptx(d, out):
             pic.crop_top = pic.crop_bottom = (1 - over) / 2
 
     def visual(s, v, x, y, w, h):
-        cap = (v.get('caption') or '') if v['type'] == 'image' else ''
+        cap = (v.get('caption') or '') if v['type'] in ('image', 'diagram') else ''
         src = v.get('source') or ''
         foot = (34 if cap else 0) + (28 if src else 0)
-        if v['type'] == 'image':
+        if v['type'] == 'diagram':  # rendered at the slot size, so nothing is cropped or stretched
+            area_h = h - foot - 10
+            s.shapes.add_picture(str(render_diagram(v, w, area_h, t)), px(x), px(y), px(w), px(area_h))
+            text(s, x, y + h - foot, w, 34, cap, 17, MUTED)
+        elif v['type'] == 'image':
             if v.get('path'):
                 picture(s, v, x, y, w, h - foot - 10)
             else:  # no photo yet: the prompt waits for the image-generation step
@@ -310,6 +356,8 @@ def build_pptx(d, out):
             r = para.runs[0]; r.font.size, r.font.bold, r.font.name = Pt(14), True, FONT; r.font.color.rgb = rgb('#FFFFFF')
             box(s, 76, top + 86, 874, bottom - top - 86, '근거', p['points'])
             box(s, 970, top + 86, 874, bottom - top - 86, '다음 할 일', p['next'] or ['-'])
+        elif (p.get('visual') or {}).get('layout') == 'full':  # wide diagram/chart: full width, points become the band
+            visual(s, p['visual'], 76, top, 1768, bottom - top)
         elif p.get('visual'):  # points left, one chart or picture right
             box(s, 76, top, 700, bottom - top, '', p['points'])
             visual(s, p['visual'], 816, top, 1028, bottom - top)

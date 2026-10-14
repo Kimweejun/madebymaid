@@ -19,7 +19,7 @@ description: 메이드 바이 메이드의 "PPT로 분석하기" 묶음 스킬. 
 
 1. 작업 폴더 `통합서버\실험실\EXP-번호`를 만든다 (없으면).
 2. 대상 링크를 읽고 조사한다. 필요하면 작업 폴더 안에서만 내려받거나 실행한다 (설치 전에는 사용자 확인).
-3. `madebymaid-ppt-summary` 규칙대로 작업 폴더에 `deck.json`을 쓴다. 기사·자료 사진은 작업 폴더에 내려받아 `visual.file`로 넣고, 숫자 비교는 그래프로 바꾼다 (본문 3장마다 1개 이상).
+3. `madebymaid-ppt-summary` 규칙대로 작업 폴더에 `deck.json`을 쓴다. 기사·자료 사진은 작업 폴더에 내려받아 `visual.file`로 넣고, 숫자 비교는 그래프로, 구조·흐름·인과는 `madebymaid-diagram-design`으로 도식을 그려 `visual.type: diagram`으로 넣는다 (본문 3장마다 1개 이상).
 4. `python "C:\Users\user\Desktop\통합서버\komow-local\ppt\deck.py" build deck.json` 으로 먼저 만들어 보고, 오류 문구가 나오면 고친다.
 5. `python "...\deck.py" publish deck.json` — git에 바로 올린다 (사용자가 자동 게시를 허락함, 2026-10-14).
 6. 출력된 웹 주소를 사용자에게 알려 준다.
