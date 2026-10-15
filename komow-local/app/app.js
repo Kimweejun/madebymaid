@@ -42,10 +42,43 @@ const PAGES = {
   skills: ['스킬관리', '스킬을 찾고 고칩니다 · 시험 기록은 작업 공방 > 실험']
 };
 const S = {page: 'home', sub: {}, cache: {}};
+/* sidebar flyouts: [label, 'state key:value', hash]. 산출물 folders are filled in on hover. */
+const NAV_SUB = {
+  news: [['뉴스', 'news:news'], ['구독 피드', 'news:rss']],
+  support: [['전체', 'supportArea:'], ['마감 임박', 'supportArea:soon'], ['★ 관심 공고', 'supportArea:star']],
+  community: [['GitHub', 'community:github'], ['Reddit', 'community:reddit'], ['Threads', 'community:threads']],
+  workshop: [['도구', 'workshop:tools', '#workshop'], ['실험', 'workshop:lab', '#workshop/lab']],
+  outputs: [['전체', 'folder:']],
+  skills: [['스킬 라이브러리', 'skills:library', '#skills/library'], ['내 스킬', 'skills:mine', '#skills/mine']]
+};
+const navSubLinks = (id, list) => list.map(([label, go, h]) => `<a role="menuitem" href="${h || '#' + id}" data-go="${esc(go)}">${esc(label)}</a>`).join('');
+let navFoldersAt = 0;
+async function navFolders(it) {
+  if (it.dataset.item !== 'outputs' || Date.now() - navFoldersAt < 30000) return;
+  navFoldersAt = Date.now();
+  try {
+    const files = await api('/api/local/files');
+    const folders = [...new Set((files.files || []).map(f => f.folder).filter(Boolean))];
+    it.querySelector('.nav-fly').innerHTML = navSubLinks('outputs', [['전체', 'folder:'], ...folders.map(f => [f, 'folder:' + f])]);
+  } catch { navFoldersAt = 0; }
+}
 
 /* ---------- shell ---------- */
 function buildShell() {
-  $('#nav').innerHTML = Object.entries(PAGES).map(([id, [label]]) => `<a href="#${id}" data-page="${id}">${svg(I[id])}<span>${label}</span></a>`).join('');
+  $('#nav').innerHTML = Object.entries(PAGES).map(([id, [label]]) => NAV_SUB[id]
+    ? `<div class="nav-item" data-item="${id}"><a href="#${id}" data-page="${id}">${svg(I[id])}<span>${label}</span></a><button class="nav-more" type="button" aria-expanded="false" aria-label="${label} 하위 메뉴"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button><div class="nav-fly" role="menu" aria-label="${label}">${navSubLinks(id, NAV_SUB[id])}</div></div>`
+    : `<a href="#${id}" data-page="${id}">${svg(I[id])}<span>${label}</span></a>`).join('');
+  $('#nav').onclick = e => {
+    const more = e.target.closest('.nav-more');
+    if (more) { const it = more.parentElement, o = it.classList.toggle('open'); more.setAttribute('aria-expanded', o); if (o) navFolders(it); return; }
+    const a = e.target.closest('[data-go]'); if (!a) return;
+    e.preventDefault(); const i = a.dataset.go.indexOf(':'), key = a.dataset.go.slice(0, i), val = a.dataset.go.slice(i + 1);
+    if (key === 'supportArea' || key === 'folder') S.cache[key] = val; else S.sub[key] = val;
+    const h = a.getAttribute('href'); if (location.hash === h) route(); else location.hash = h;
+    a.blur();
+  };
+  $('#nav').addEventListener('mouseover', e => { const it = e.target.closest('.nav-item'); if (it) navFolders(it); });
+  $('#nav').addEventListener('focusin', e => { const it = e.target.closest('.nav-item'); if (it) navFolders(it); });
   $('#side-maids').innerHTML = MAIDS.map(m => `<div class="side-maid" data-maid="${m.id}"><span class="sprite mini" aria-hidden="true"></span><span><b>${m.name}</b> <small>${m.engine}</small><span class="maid-state">확인 중…</span></span></div>`).join('');
   pollMaids();
   const saved = (() => { try { return localStorage.getItem('ws-theme'); } catch { return null; } })();

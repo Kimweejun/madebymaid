@@ -36,6 +36,14 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .nav a:hover{background:var(--sunken)}
 .nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:650}
 .nav a[aria-current="page"] svg{color:var(--accent)}
+.nav-item{position:relative;display:flex;align-items:center}
+.nav-item>a{flex:1;min-width:0}
+.nav-more{display:none;flex:none;width:36px;height:36px;border:0;background:none;color:var(--muted);border-radius:var(--r);cursor:pointer}
+.nav-more svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;transition:transform .15s}
+.nav-fly{position:absolute;left:100%;top:-6px;z-index:20;min-width:170px;padding:6px;margin-left:10px;display:none;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.nav-fly::before{content:"";position:absolute;right:100%;top:0;bottom:0;width:12px}
+.nav-fly a{padding:8px 12px;font-weight:500;font-size:14px;white-space:nowrap}
+.nav-item:hover>.nav-fly,.nav-item:focus-within>.nav-fly{display:flex}
 .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:4px}
 .ghost{background:none;border:0;padding:8px 12px;text-align:left;border-radius:var(--r);color:var(--muted);font-size:13px;text-decoration:none;cursor:pointer}
 .ghost:hover{background:var(--sunken);color:var(--ink)}
@@ -198,6 +206,11 @@ dialog textarea{min-height:48vh}
 
 @media (max-width:1000px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}}
 @media (max-width:760px){
+  .nav-more{display:inline-grid;place-items:center}
+  .nav-item{flex-wrap:wrap}
+  .nav-item:hover>.nav-fly,.nav-item:focus-within>.nav-fly{display:none}
+  .nav-item.open>.nav-fly{display:flex;position:static;flex-basis:100%;margin:2px 0 6px 30px;box-shadow:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:0 0 0 8px;min-width:0;background:none}
+  .nav-item.open .nav-more svg{transform:rotate(90deg)}
   .side{position:fixed;z-index:5;left:0;transform:translateX(-100%);transition:transform .2s;box-shadow:var(--shadow)}
   .side.open{transform:none}
   .menu{display:grid}
