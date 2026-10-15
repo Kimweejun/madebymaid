@@ -11,6 +11,7 @@ komow-local/data/*
 !komow-local/data/bookmarks.json
 !komow-local/data/feedback.json
 !komow-local/data/tags_override.json
+!komow-local/data/secrets.example.json
 
 # 큰 실행 파일·원본 자료·보관본
 komow-local/site/
