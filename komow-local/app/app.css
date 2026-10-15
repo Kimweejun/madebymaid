@@ -29,7 +29,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .shell{display:flex;min-height:100vh}
 .side{width:var(--side);flex:none;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;padding:20px 14px;background:var(--surface);border-right:1px solid var(--line)}
 .brand{display:flex;justify-content:center;text-decoration:none;padding:6px 0 2px}
-.logo{display:block;width:104px}
+.logo{display:block;width:184px;max-width:100%}
 .logo img{display:block;width:100%;height:auto}
 .nav{display:flex;flex-direction:column;gap:2px}
 .nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:var(--r);text-decoration:none;color:var(--ink-2);font-weight:500}
@@ -223,6 +223,7 @@ dialog textarea{min-height:48vh}
 
 /* dark theme: purple only on boxes and effects */
 :root[data-theme="dark"] .side{background:#0B0A0F;border-right-color:var(--line)}
+/* Keep the approved logo colors; the purple glow carries its outline on the dark sidebar. */
 :root[data-theme="dark"] .logo img{filter:drop-shadow(0 0 1px #E9DEFF) drop-shadow(0 0 1.5px #E9DEFF) drop-shadow(0 0 8px rgba(167,139,250,.75))}
 :root[data-theme="dark"] .card{border-color:rgba(139,92,246,.2)}
 :root[data-theme="dark"] .card:hover{border-color:rgba(167,139,250,.4)}
